@@ -20,7 +20,7 @@ class Nick:
             'appears': {'frames': 6, 'width': 16, 'height': 32, 'interval': 1},
             'idle': {'frames': 1, 'width': 16, 'height': 32},
             'jump': {'frames': 4, 'width': 16, 'height': 32, 'interval': 1},
-            'shooting': {'frames': 2, 'width': 16, 'height': 32, 'interval': 1},
+            'shooting': {'frames': 2, 'width': 24, 'height': 24, 'interval': 1},
             'walk': {'frames': 3, 'width': 16, 'height': 32, 'interval': 1},
         }
 
@@ -61,7 +61,7 @@ class Nick:
         # 캐릭터 크기를 2배로 그리기 위해 width와 height를 2배로 설정
         draw_width = animation['width'] * 2
         draw_height = animation['height'] * 2
-        flip = self.face_dir > 0  # 왼쪽을 보고 있으면 True, 오른쪽을 보고 있으면 False
+        flip = self.face_dir > 0  # 캐릭터가 오른쪽을 바라보면 flip을 False로 설정
 
         # 현재 상태에 맞는 이미지와 프레임을 그리기
         if self.state == 'appears':
@@ -89,7 +89,7 @@ class Nick:
                 self.frame * (animation['width'] + animation['interval']), 0,
                 animation['width'], animation['height'],
                 0, 'h' if flip else '',
-                self.x, self.y, draw_width, draw_height)
+                self.x, self.y - 12, draw_width, draw_height)
 
         elif self.state == 'walk':
             self.image_walk.clip_composite_draw(
