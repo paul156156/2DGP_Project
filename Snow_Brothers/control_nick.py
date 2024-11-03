@@ -52,7 +52,7 @@ while running:
     running = handle_events(nick)  # handle_events가 False를 반환하면 종료
     update_world(world)
     render_world(world)
-    delay(0.02)
+    delay(0.03)
 
 # finalization code
 close_canvas()

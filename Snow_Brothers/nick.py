@@ -5,6 +5,7 @@ class Nick:
         self.x, self.y = 512 // 2, 464 // 2  # 캐릭터 초기 위치
         self.frame = 0  # 애니메이션 프레임 초기화
         self.dir = 0  # 움직임 방향 (0: 정지, 1: 오른쪽, -1: 왼쪽)
+        self.face_dir = -1  # 캐릭터가 바라보는 방향 (1: 오른쪽, -1: 왼쪽)
         self.state = 'appears'  # 초기 상태는 화면 등장 상태
 
         # 이미지 로드 (각 상태에 맞는 이미지 파일 로드)
@@ -38,9 +39,11 @@ class Nick:
         if event.type == SDL_KEYDOWN:
             if event.key == SDLK_RIGHT:
                 self.dir = 1
+                self.face_dir = 1  # 오른쪽으로 이동하면 오른쪽을 바라보게 함
                 self.state = 'walk'  # 오른쪽으로 이동하면 걷기 상태로 변경
             elif event.key == SDLK_LEFT:
                 self.dir = -1
+                self.face_dir = -1 # 왼쪽으로 이동하면 왼쪽을 바라보게 함
                 self.state = 'walk'  # 왼쪽으로 이동하면 걷기 상태로 변경
             elif event.key == SDLK_LALT:
                 self.state = 'jump'  # 점프 상태로 변경
@@ -58,28 +61,39 @@ class Nick:
         # 캐릭터 크기를 2배로 그리기 위해 width와 height를 2배로 설정
         draw_width = animation['width'] * 2
         draw_height = animation['height'] * 2
+        flip = self.face_dir > 0  # 왼쪽을 보고 있으면 True, 오른쪽을 보고 있으면 False
 
         # 현재 상태에 맞는 이미지와 프레임을 그리기
         if self.state == 'appears':
-            self.image_appears.clip_draw(
-                self.frame * (animation['width'] + animation['interval']),  # 프레임 간 간격 적용
-                0, animation['width'], animation['height'], self.x, self.y, draw_width, draw_height)
+            self.image_appears.clip_composite_draw(
+                self.frame * (animation['width'] + animation['interval']), 0,
+                animation['width'], animation['height'],
+                0, 'h' if flip else '',  # flip 값에 따라 좌우 반전 적용
+                self.x, self.y, draw_width, draw_height)
 
         elif self.state == 'idle':
-            self.image_idle.clip_draw(
-                0, 0, animation['width'], animation['height'], self.x, self.y, draw_width, draw_height)  # Idle은 한 프레임만 사용
+            self.image_idle.clip_composite_draw(
+                0, 0, animation['width'], animation['height'],
+                0, 'h' if flip else '',
+                self.x, self.y, draw_width, draw_height)
 
         elif self.state == 'jump':
-            self.image_jump.clip_draw(
-                self.frame * (animation['width'] + animation['interval']),  # 프레임 간 간격 적용
-                0, animation['width'], animation['height'], self.x, self.y, draw_width, draw_height)
+            self.image_jump.clip_composite_draw(
+                self.frame * (animation['width'] + animation['interval']), 0,
+                animation['width'], animation['height'],
+                0, 'h' if flip else '',
+                self.x, self.y, draw_width, draw_height)
 
         elif self.state == 'shooting':
-            self.image_shooting.clip_draw(
-                self.frame * (animation['width'] + animation['interval']),  # 프레임 간 간격 적용
-                0, animation['width'], animation['height'], self.x, self.y, draw_width, draw_height)
+            self.image_shooting.clip_composite_draw(
+                self.frame * (animation['width'] + animation['interval']), 0,
+                animation['width'], animation['height'],
+                0, 'h' if flip else '',
+                self.x, self.y, draw_width, draw_height)
 
         elif self.state == 'walk':
-            self.image_walk.clip_draw(
-                self.frame * (animation['width'] + animation['interval']),  # 프레임 간 간격 적용
-                0, animation['width'], animation['height'], self.x, self.y, draw_width, draw_height)
+            self.image_walk.clip_composite_draw(
+                self.frame * (animation['width'] + animation['interval']), 0,
+                animation['width'], animation['height'],
+                0, 'h' if flip else '',
+                self.x, self.y, draw_width, draw_height)
