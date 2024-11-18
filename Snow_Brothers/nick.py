@@ -39,12 +39,11 @@ class Nick:
         self.state.enter(self)
 
     def shoot_bullet(self):
-        # 총알이 Nick의 위치에서 발사되며 바라보는 방향으로 생성
         offset = 20
-        bullet_x = self.x + self.face_dir * offset  # Nick의 앞에서 시작
+        bullet_x = self.x + self.face_dir * offset
         bullet_strength = 0
         bullet = Bullet(bullet_x, self.y, bullet_strength, self.face_dir)
-        game_world.add_object(bullet, 1)  # game_world에 총알 추가
+        game_world.add_object(bullet, 1)
 
     def get_bb(self):
         return self.x - 20, self.y - 40, self.x + 20, self.y + 20

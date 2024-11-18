@@ -1,5 +1,5 @@
 from pico2d import (load_image, get_events, clear_canvas, update_canvas
-, SDL_QUIT, SDL_KEYDOWN, SDLK_ESCAPE, SDLK_SPACE)
+, SDL_QUIT, SDL_KEYDOWN, SDLK_ESCAPE)
 import game_framework
 import play_mode
 
@@ -21,7 +21,7 @@ def handle_events():
             game_framework.quit()
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             game_framework.quit()
-        else:
+        elif event.type == SDL_KEYDOWN:
             game_framework.change_mode(play_mode)
 
 def draw():
@@ -30,7 +30,7 @@ def draw():
 
     frame_width = 1024 // 4
     frame_height = 232
-    interval = 1  # 간격
+    interval = 1
 
     frame_x = frame * (frame_width + interval)
 
