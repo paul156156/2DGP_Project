@@ -1,5 +1,6 @@
 from pico2d import *
 import game_world
+import game_framework
 from bullet import Bullet
 
 class Nick:
@@ -62,8 +63,8 @@ class Nick:
         # 총알이 Nick의 위치에서 발사되며 바라보는 방향으로 생성
         offset = 1  # Nick으로부터 총알의 초기 거리 오프셋
         bullet_x = self.x + self.face_dir * offset  # Nick의 앞에서 시작
-        bullet_velocity = self.face_dir * 5  # 바라보는 방향으로 발사 속도 설정
-        bullet = Bullet(bullet_x, self.y, bullet_velocity, self.y)
+        bullet_strength = 0
+        bullet = Bullet(bullet_x, self.y, bullet_strength, self.face_dir)
         game_world.add_object(bullet, 1)  # game_world에 총알 추가
 
     def get_bb(self):
