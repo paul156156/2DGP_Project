@@ -28,15 +28,16 @@ class Nick:
         }
 
     def update(self):
-        # 현재 상태에 따른 프레임 업데이트
-        self.frame = (self.frame + 0.25) % self.animations[self.state]['frames']
-
-        if self.state == 'walk':
-            self.x += self.dir * 5  # 걷기 상태에서만 캐릭터 이동
+        # 현재 상태에 따른 프레임 업데이트 (시간 기반 애니메이션 속도 제어)
+        self.frame = (self.frame + 30 * game_framework.frame_time) % self.animations[self.state]['frames']
 
         # appear 상태가 끝나면 자동으로 idle 상태로 전환
         if self.state == 'appears' and self.frame == 0:
             self.state = 'idle'
+
+        elif self.state == 'walk':
+            self.x += self.dir * 150 * game_framework.frame_time  # 이동 속도를 프레임 독립적으로 설정
+
 
     def handle_event(self, event):
         if event.type == SDL_KEYDOWN:
@@ -50,7 +51,7 @@ class Nick:
                 self.state = 'walk'  # 왼쪽으로 이동하면 걷기 상태로 변경
             elif event.key == SDLK_LALT:
                 self.state = 'jump'  # 점프 상태로 변경
-                self.y += 32 * 2  # 점프 상태에서는 y좌표를 64만큼 증가
+                self.y += 64
             elif event.key == SDLK_LCTRL:
                 self.state = 'shooting'  # 공격(발사) 상태로 변경
                 self.shoot_bullet()  # 총알 발사
