@@ -1,8 +1,7 @@
 from pico2d import *
 import game_world
-import game_framework
 from bullet import Bullet
-from states import IdleState, WalkState, JumpState, ShootingState, AppearsState
+from states import AppearsState
 
 class Nick:
     def __init__(self):
@@ -41,7 +40,7 @@ class Nick:
 
     def shoot_bullet(self):
         # 총알이 Nick의 위치에서 발사되며 바라보는 방향으로 생성
-        offset = 1  # Nick으로부터 총알의 초기 거리 오프셋
+        offset = 20
         bullet_x = self.x + self.face_dir * offset  # Nick의 앞에서 시작
         bullet_strength = 0
         bullet = Bullet(bullet_x, self.y, bullet_strength, self.face_dir)

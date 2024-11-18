@@ -56,8 +56,6 @@ def run(start_mode):
         frame_time = new_time - current_time
         current_time = new_time
 
-        #pico2d.delay(0.016)
-    # repeatedly delete the top of the stack
     while (len(stack) > 0):
         stack[-1].finish()
         stack.pop()

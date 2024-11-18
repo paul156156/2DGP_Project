@@ -1,5 +1,5 @@
-objects = []  # 게임 오브젝트를 관리할 리스트 (2D 리스트로 레이어별 관리)
-collision_pairs = []  # 충돌 처리용 쌍 리스트
+objects = []
+collision_pairs = []
 
 def add_object(obj, layer):
     while len(objects) <= layer:
