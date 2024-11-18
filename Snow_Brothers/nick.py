@@ -2,7 +2,7 @@ from pico2d import *
 
 class Nick:
     def __init__(self):
-        self.x, self.y = 512 // 2, 464 // 2  # 캐릭터 초기 위치
+        self.x, self.y = 512 // 2, 95  # 캐릭터 초기 위치
         self.frame = 0  # 애니메이션 프레임 초기화
         self.dir = 0  # 움직임 방향 (0: 정지, 1: 오른쪽, -1: 왼쪽)
         self.face_dir = -1  # 캐릭터가 바라보는 방향 (1: 오른쪽, -1: 왼쪽)
@@ -47,6 +47,7 @@ class Nick:
                 self.state = 'walk'  # 왼쪽으로 이동하면 걷기 상태로 변경
             elif event.key == SDLK_LALT:
                 self.state = 'jump'  # 점프 상태로 변경
+                self.y += 64  # 점프 상태에서는 y좌표를 5만큼 증가
             elif event.key == SDLK_LCTRL:
                 self.state = 'shooting'  # 공격(발사) 상태로 변경
         elif event.type == SDL_KEYUP:
