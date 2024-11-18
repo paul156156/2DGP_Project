@@ -2,6 +2,7 @@ from pico2d import *
 import game_world
 import game_framework
 from bullet import Bullet
+from states import IdleState, WalkState, JumpState, ShootingState, AppearsState
 
 class Nick:
     def __init__(self):
@@ -9,7 +10,7 @@ class Nick:
         self.frame = 0  # 애니메이션 프레임 초기화
         self.dir = 0  # 움직임 방향 (0: 정지, 1: 오른쪽, -1: 왼쪽)
         self.face_dir = -1  # 캐릭터가 바라보는 방향 (1: 오른쪽, -1: 왼쪽)
-        self.state = 'appears'  # 초기 상태는 화면 등장 상태
+        self.state = AppearsState()  # 초기 상태 설정
 
         # 이미지 로드 (각 상태에 맞는 이미지 파일 로드)
         self.image_appears = load_image('resources\\nick\\nick_appears.png')
@@ -28,37 +29,15 @@ class Nick:
         }
 
     def update(self):
-        # 현재 상태에 따른 프레임 업데이트 (시간 기반 애니메이션 속도 제어)
-        self.frame = (self.frame + 30 * game_framework.frame_time) % self.animations[self.state]['frames']
-
-        # appear 상태가 끝나면 자동으로 idle 상태로 전환
-        if self.state == 'appears' and self.frame == 0:
-            self.state = 'idle'
-
-        elif self.state == 'walk':
-            self.x += self.dir * 150 * game_framework.frame_time  # 이동 속도를 프레임 독립적으로 설정
-
+        self.state.update(self)
 
     def handle_event(self, event):
-        if event.type == SDL_KEYDOWN:
-            if event.key == SDLK_RIGHT:
-                self.dir = 1
-                self.face_dir = 1  # 오른쪽으로 이동하면 오른쪽을 바라보게 함
-                self.state = 'walk'  # 오른쪽으로 이동하면 걷기 상태로 변경
-            elif event.key == SDLK_LEFT:
-                self.dir = -1
-                self.face_dir = -1 # 왼쪽으로 이동하면 왼쪽을 바라보게 함
-                self.state = 'walk'  # 왼쪽으로 이동하면 걷기 상태로 변경
-            elif event.key == SDLK_LALT:
-                self.state = 'jump'  # 점프 상태로 변경
-                self.y += 64
-            elif event.key == SDLK_LCTRL:
-                self.state = 'shooting'  # 공격(발사) 상태로 변경
-                self.shoot_bullet()  # 총알 발사
-        elif event.type == SDL_KEYUP:
-            if event.key in (SDLK_RIGHT, SDLK_LEFT, SDLK_LALT, SDLK_LCTRL):
-                self.dir = 0  # 이동 멈추면 정지
-                self.state = 'idle'  # 모든 동작 후 idle 상태로 변경
+        self.state.handle_event(self, event)
+
+    def change_state(self, new_state):
+        self.state.exit(self)
+        self.state = new_state
+        self.state.enter(self)
 
     def shoot_bullet(self):
         # 총알이 Nick의 위치에서 발사되며 바라보는 방향으로 생성
@@ -72,47 +51,5 @@ class Nick:
         return self.x - 20, self.y - 40, self.x + 20, self.y + 20
 
     def draw(self):
-        # 현재 상태에 맞는 애니메이션 정보 가져오기
-        animation = self.animations[self.state]
-
-        # 캐릭터 크기를 2배로 그리기 위해 width와 height를 2배로 설정
-        draw_width = animation['width'] * 2
-        draw_height = animation['height'] * 2
-        flip = self.face_dir > 0  # 캐릭터가 오른쪽을 바라보면 flip을 False로 설정
-
-        # 현재 상태에 맞는 이미지와 프레임을 그리기
-        if self.state == 'appears':
-            self.image_appears.clip_composite_draw(
-                int(self.frame) * (animation['width'] + animation['interval']), 0,
-                animation['width'], animation['height'],
-                0, 'h' if flip else '',  # flip 값에 따라 좌우 반전 적용
-                self.x, self.y, draw_width, draw_height)
-
-        elif self.state == 'idle':
-            self.image_idle.clip_composite_draw(
-                0, 0, animation['width'], animation['height'],
-                0, 'h' if flip else '',
-                self.x, self.y, draw_width, draw_height)
-
-        elif self.state == 'jump':
-            self.image_jump.clip_composite_draw(
-                int(self.frame) * (animation['width'] + animation['interval']), 0,
-                animation['width'], animation['height'],
-                0, 'h' if flip else '',
-                self.x, self.y, draw_width, draw_height)
-
-        elif self.state == 'shooting':
-            self.image_shooting.clip_composite_draw(
-                int(self.frame) * (animation['width'] + animation['interval']), 0,
-                animation['width'], animation['height'],
-                0, 'h' if flip else '',
-                self.x, self.y - 12, draw_width, draw_height)
-
-        elif self.state == 'walk':
-            self.image_walk.clip_composite_draw(
-                int(self.frame) * (animation['width'] + animation['interval']), 0,
-                animation['width'], animation['height'],
-                0, 'h' if flip else '',
-                self.x, self.y, draw_width, draw_height)
-
+        self.state.draw(self)
         draw_rectangle(*self.get_bb())
