@@ -43,24 +43,61 @@ def render():
             obj.draw()
 
 def add_collision_pair(group, a, b):
-    collision_pairs.append((group, a, b))
+    if isinstance(a, list) and isinstance(b, list):
+        for obj_a in a:
+            for obj_b in b:
+                collision_pairs.append((group, obj_a, obj_b))
+    elif isinstance(a, list):
+        for obj_a in a:
+            collision_pairs.append((group, obj_a, b))
+    elif isinstance(b, list):
+        for obj_b in b:
+            collision_pairs.append((group, a, obj_b))
+    else:
+        collision_pairs.append((group, a, b))
 
 def handle_collisions():
     for group, a, b in collision_pairs:
+        # 객체 검증
         if a is None or b is None:
+            print(f"Invalid collision pair: {a}, {b}")
             continue
-        if collide(a, b):  # 충돌 여부 확인
+
+        # Bounding Box 확인
+        if not hasattr(a, 'get_bb') or not hasattr(b, 'get_bb'):
+            print(f"Non-collidable objects in pair: {a}, {b}")
+            continue
+
+        # 충돌 감지
+        if collide(a, b):
+            print(f"COLLISION: {group} between {a} and {b}")
+
+            # 그룹별 충돌 처리
             if group == 'character:platform':
-                a.on_collision_with_platform(b)  # 충돌 처리 메서드 호출
-            print(f'COLLISION: {group}')
+                a.on_collision_with_platform(b)
+            elif group == 'enemy:bullet':
+                a.handle_collision(b)
+                b.handle_collision(a)
+            elif group == 'character:enemy':
+                a.on_collision_with_enemy(b)
+                b.handle_collision(a)
+            else:
+                print(f"Unhandled collision group: {group}")
+
+
 
 def collide(a, b):
     left_a, bottom_a, right_a, top_a = a.get_bb()
     left_b, bottom_b, right_b, top_b = b.get_bb()
 
-    if left_a > right_b: return False
-    if right_a < left_b: return False
-    if top_a < bottom_b: return False
-    if bottom_a > top_b: return False
+    print(f"Checking collision:")
+    print(f" - Object A BB: {left_a, bottom_a, right_a, top_a}")
+    print(f" - Object B BB: {left_b, bottom_b, right_b, top_b}")
 
+    if left_a > right_b or right_a < left_b or top_a < bottom_b or bottom_a > top_b:
+        print("No collision detected.")
+        return False
+
+    print("Collision detected!")
     return True
+

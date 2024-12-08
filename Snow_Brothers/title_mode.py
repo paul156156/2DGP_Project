@@ -2,17 +2,26 @@ from pico2d import (load_image, get_events, clear_canvas, update_canvas
 , SDL_QUIT, SDL_KEYDOWN, SDLK_ESCAPE)
 import game_framework
 import play_mode
+from pico2d import load_music
+
+bgm = None
 
 def init():
-    global image, frame, elapsed_time, animation_done
+    global image, frame, elapsed_time, animation_done, bgm
     image = load_image('resources\\title\\title.png')  # 스프라이트 이미지 로드
+    bgm = load_music('resources\\music\\01 Start.mp3')  # 음악 파일 로드
+    bgm.set_volume(64)  # 음악 볼륨 설정 (0~128)
+    bgm.repeat_play()  # 반복 재생
+
     frame = 0  # 현재 프레임 초기화
     elapsed_time = 0  # 경과 시간 초기화
     animation_done = False  # 애니메이션 완료 여부
 
 def finish():
-    global image
+    global image, bgm
     del image
+    bgm.stop()  # 음악 중지
+    del bgm
 
 def handle_events():
     events = get_events()

@@ -38,7 +38,7 @@ class Bullet:
                 self.x, self.y,  # 그릴 위치
                 draw_width, draw_height  # 2배 크기로 그리기
             )
-        draw_rectangle(*self.get_bb())
+        #draw_rectangle(*self.get_bb())
 
     def update(self):
         if self.face_dir == 1:
@@ -58,4 +58,6 @@ class Bullet:
         return self.x - 5, self.y - 10, self.x + 5, self.y + 10
 
     def handle_collision(self, group, other):
-        pass
+        if group == 'enemy:bullet':
+            print(f"Bullet collided with enemy at ({self.x}, {self.y})")
+            game_world.remove_object(self)  # 충돌 후 Bullet 제거

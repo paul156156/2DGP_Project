@@ -18,12 +18,8 @@ class Platform:
         )
 
     def draw(self):
-        draw_rectangle(
-            self.x * SCALE,
-            self.y * SCALE,
-            (self.x + self.width) * SCALE,
-            (self.y + self.height) * SCALE
-        )
+        #draw_rectangle(self.x * SCALE,self.y * SCALE,(self.x + self.width) * SCALE,(self.y + self.height) * SCALE)
+        pass
 
     def update(self):
         pass

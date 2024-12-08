@@ -13,6 +13,9 @@ class Nick:
         self.vy = 0  # 수직 속도
         self.on_ground = False  # 착지 상태
         self.current_platform = None  # 현재 서 있는 플랫폼
+        self.bullets = []  # Nick이 발사한 총알 리스트 추가
+        self.hp = 3  # 초기 HP 설정
+
 
         # 이미지 로드 (각 상태에 맞는 이미지 파일 로드)
         self.image_appears = load_image('resources\\nick\\nick_appears.png')
@@ -32,6 +35,8 @@ class Nick:
 
     def update(self):
         self.state.update(self)
+        # bullets 리스트에서 제거된 총알을 필터링
+        self.bullets = [bullet for bullet in self.bullets if bullet in game_world.objects]
 
     def handle_event(self, event):
         self.state.handle_event(self, event)
@@ -46,7 +51,14 @@ class Nick:
         bullet_x = self.x + self.face_dir * offset
         bullet_strength = 0
         bullet = Bullet(bullet_x, self.y, bullet_strength, self.face_dir)
-        game_world.add_object(bullet, 1)
+
+        # 게임 월드에 추가 및 리스트에 저장
+        game_world.add_object(bullet, 2)
+        self.bullets.append(bullet)
+
+        # 충돌 페어에 새로운 총알 추가
+        for enemy in game_world.get_objects_in_layer(1):  # 레이어 1의 적 가져오기
+            game_world.add_collision_pair('enemy:bullet', enemy, bullet)
 
     def get_bb(self):
         return self.x - 15, self.y - 35, self.x + 15, self.y + 15
@@ -66,6 +78,14 @@ class Nick:
         self.on_ground = True  # 착지 상태로 전환
         self.current_platform = platform  # 현재 서 있는 플랫폼 기록
 
+    def on_collision_with_enemy(self, enemy):
+        print(f"Nick collided with enemy at ({enemy.x}, {enemy.y})")
+        # HP 감소 로직 추가
+        self.hp -= 1
+        if self.hp <= 0:
+            print("Game Over!")
+            game_world.remove_object(self)  # Nick 제거 (게임 오버)
+
     def draw(self):
         self.state.draw(self)
-        draw_rectangle(*self.get_bb())
+        #draw_rectangle(*self.get_bb())
