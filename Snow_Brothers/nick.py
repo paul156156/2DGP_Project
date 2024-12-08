@@ -3,16 +3,16 @@ import game_world
 from bullet import Bullet
 from states import AppearsState
 
-GRAVITY = -500  # 중력 값 (픽셀/초^2)
-GROUND_Y = 90   # 바닥 y 좌표 (플랫폼이 없을 때 착지하는 기본 높이)
-
 class Nick:
     def __init__(self):
-        self.x, self.y = 512 // 2, 90  # 캐릭터 초기 위치
+        self.x, self.y = 512 // 2, 96  # 캐릭터 초기 위치
         self.frame = 0  # 애니메이션 프레임 초기화
         self.dir = 0  # 움직임 방향 (0: 정지, 1: 오른쪽, -1: 왼쪽)
         self.face_dir = -1  # 캐릭터가 바라보는 방향 (1: 오른쪽, -1: 왼쪽)
         self.state = AppearsState()  # 초기 상태 설정
+        self.vy = 0  # 수직 속도
+        self.on_ground = False  # 착지 상태
+        self.current_platform = None  # 현재 서 있는 플랫폼
 
         # 이미지 로드 (각 상태에 맞는 이미지 파일 로드)
         self.image_appears = load_image('resources\\nick\\nick_appears.png')
@@ -49,7 +49,7 @@ class Nick:
         game_world.add_object(bullet, 1)
 
     def get_bb(self):
-        return self.x - 20, self.y - 40, self.x + 20, self.y + 20
+        return self.x - 15, self.y - 35, self.x + 15, self.y + 15
 
     def collide_with(self, other):
         left_a, bottom_a, right_a, top_a = self.get_bb()
@@ -61,9 +61,10 @@ class Nick:
 
     def on_collision_with_platform(self, platform):
         left, bottom, right, top = platform.get_bb()
-        self.y = top + 20  # 플랫폼 위로 위치 조정
+        self.y = top + 32  # 플랫폼 위로 위치 조정
         self.vy = 0  # 수직 속도 초기화
         self.on_ground = True  # 착지 상태로 전환
+        self.current_platform = platform  # 현재 서 있는 플랫폼 기록
 
     def draw(self):
         self.state.draw(self)

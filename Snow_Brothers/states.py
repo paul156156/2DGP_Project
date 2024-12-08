@@ -1,5 +1,9 @@
 from pico2d import *
 import game_framework
+import game_world
+
+GRAVITY = -500  # 중력 값 (픽셀/초^2)
+GROUND_Y = 96   # 바닥 y 좌표 (플랫폼이 없을 때 착지하는 기본 높이)
 
 class State:
     @staticmethod
@@ -51,6 +55,26 @@ class IdleState(State):
     def update(nick):
         nick.frame = (nick.frame + 30 * game_framework.frame_time) % nick.animations['idle']['frames']
 
+        # 중력 적용: 플랫폼 위에 있지 않은 경우 아래로 떨어짐
+        if not nick.on_ground or nick.current_platform is None:
+            nick.vy += 3 * GRAVITY * game_framework.frame_time
+            nick.y += nick.vy * game_framework.frame_time
+
+            # 하강 중 다른 플랫폼과의 충돌 확인
+            for obj in game_world.get_objects_in_layer(0):  # 0번 레이어에서 플랫폼 가져오기
+                if hasattr(obj, 'get_bb'):
+                    left, bottom, right, top = obj.get_bb()
+                    if nick.vy < 0 and bottom < nick.y <= top and left <= nick.x <= right:  # 아래 플랫폼만 감지
+                        nick.on_collision_with_platform(obj)
+                        return
+
+            # 바닥 충돌 처리
+            if nick.y < GROUND_Y:
+                nick.y = GROUND_Y
+                nick.vy = 0
+                nick.on_ground = True
+                nick.current_platform = None
+
     @staticmethod
     def handle_event(nick, event):
         if event.type == SDL_KEYDOWN:
@@ -89,7 +113,39 @@ class WalkState(State):
     @staticmethod
     def update(nick):
         nick.frame = (nick.frame + 30 * game_framework.frame_time) % nick.animations['walk']['frames']
-        nick.x += nick.dir * nick.speed * game_framework.frame_time
+
+        # 이동 방향에 따른 새로운 x 좌표 계산
+        new_x = nick.x + nick.dir * nick.speed * game_framework.frame_time
+
+        # 플랫폼 위에 있을 경우에만 이동 가능
+        if nick.on_ground and nick.current_platform:
+            left, bottom, right, top = nick.current_platform.get_bb()
+            if left <= new_x <= right:  # 플랫폼 범위 내에서만 이동 허용
+                nick.x = new_x
+            else:
+                # 플랫폼을 벗어나면 떨어지도록 설정
+                nick.on_ground = False
+                nick.current_platform = None
+                #nick.vy = 0  # 중력 적용을 위한 초기 속도 설정
+        else:
+            # Nick이 플랫폼을 벗어난 경우 중력 적용
+            nick.x = new_x
+            nick.vy += 3 * GRAVITY * game_framework.frame_time
+            nick.y += nick.vy * game_framework.frame_time
+
+            # 하강 중 다른 플랫폼과의 충돌 확인
+            for obj in game_world.get_objects_in_layer(0):  # 0번 레이어의 플랫폼 가져오기
+                if hasattr(obj, 'get_bb'):
+                    left, bottom, right, top = obj.get_bb()
+                    if nick.vy < 0 and bottom < nick.y <= top and left <= nick.x <= right:  # 아래 플랫폼만 감지
+                        nick.on_collision_with_platform(obj)
+                        return
+
+            # 바닥 충돌 처리
+            if nick.y < GROUND_Y:
+                nick.y = GROUND_Y
+                nick.vy = 0
+                nick.on_ground = True
 
     @staticmethod
     def handle_event(nick, event):
@@ -114,24 +170,34 @@ class JumpState(State):
     @staticmethod
     def enter(nick):
         nick.frame = 0
-        nick.start_y = nick.y  # 점프 시작 시 초기 y 위치를 저장
-        nick.jumping = True
+        nick.vy = 250  # 점프 초기 속도 (양수: 위로 상승)
+        nick.on_ground = False  # 점프 중에는 공중 상태
 
     @staticmethod
     def update(nick):
         nick.frame = (nick.frame + 15 * game_framework.frame_time) % nick.animations['jump']['frames']
-        if nick.jumping:
-            if nick.y <= nick.start_y + 64:
-                nick.y += 150 * game_framework.frame_time  # y 좌표를 증가시켜 점프
-            else:
-                nick.y = nick.start_y + 64  # 최대 높이를 제한
-                nick.jumping = False  # 점프 완료
-                nick.change_state(IdleState)  # Idle 상태로 전환
+
+        # 중력 적용
+        nick.vy += GRAVITY * game_framework.frame_time
+        nick.y += nick.vy * game_framework.frame_time
+
+        # 착지할 때만 플랫폼 충돌 확인
+        if nick.vy < 0:  # Nick이 하강 중일 때만 충돌 확인
+            for obj in game_world.get_objects_in_layer(0):  # 0번 레이어에서 플랫폼 가져오기
+                if hasattr(obj, 'get_bb') and nick.collide_with(obj):  # Nick과 플랫폼 충돌
+                    nick.on_collision_with_platform(obj)
+                    nick.change_state(IdleState)  # 충돌 시 Idle 상태로 전환
+                    return
+
+        # 바닥 충돌 확인
+        if nick.y <= GROUND_Y:
+            nick.y = GROUND_Y
+            nick.vy = 0
+            nick.on_ground = True
+            nick.change_state(IdleState)  # 바닥에 닿으면 Idle 상태로 전환
 
     @staticmethod
     def handle_event(nick, event):
-        #if event.type == SDL_KEYUP and event.key == SDLK_LALT:
-            #nick.change_state(IdleState)
         pass
 
     @staticmethod
@@ -146,6 +212,7 @@ class JumpState(State):
             nick.x, nick.y,
             draw_width, draw_height
         )
+
 
 class ShootingState(State):
     @staticmethod

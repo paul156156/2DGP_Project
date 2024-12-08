@@ -11,6 +11,12 @@ def add_objects(objs, layer):
         objects.append([])
     objects[layer] += objs
 
+def get_objects_in_layer(layer):
+    """지정된 레이어의 객체 리스트 반환"""
+    if layer < len(objects):
+        return objects[layer]
+    return []  # 해당 레이어가 없으면 빈 리스트 반환
+
 def remove_object(obj):
     for layer in objects:
         if obj in layer:
