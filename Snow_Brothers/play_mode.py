@@ -4,6 +4,7 @@ from pico2d import *
 
 from nick import Nick
 from stage import Stage
+from platforms import create_platforms  # 플랫폼 생성 함수
 
 #nick = None
 
@@ -24,8 +25,17 @@ def init():
     stage = Stage()
     game_world.add_object(stage, 0)  # 레이어 0에 추가
 
+    # 플랫폼 초기화
+    platforms = create_platforms()
+    for platform in platforms:
+        game_world.add_object(platform, 0)  # 레이어 0에 추가
+
     nick = Nick()
     game_world.add_object(nick, 1)  # 레이어 1에 추가
+
+    # 충돌 그룹 추가
+    for platform in platforms:
+        game_world.add_collision_pair('character:platform', nick, platform)
 
 def update():
     game_world.update()  # 모든 오브젝트 업데이트

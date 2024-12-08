@@ -43,7 +43,9 @@ def handle_collisions():
     for group, a, b in collision_pairs:
         if a is None or b is None:
             continue
-        if collide(a, b):
+        if collide(a, b):  # 충돌 여부 확인
+            if group == 'character:platform':
+                a.on_collision_with_platform(b)  # 충돌 처리 메서드 호출
             print(f'COLLISION: {group}')
 
 def collide(a, b):
